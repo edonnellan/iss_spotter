@@ -25,13 +25,44 @@ const fetchMyIP = (callback) => {
 
     } else {
 
-      const data = JSON.parse(body);
-      callback(null, data.ip);
-      return;
+      let ipAddress = JSON.parse(body);
+      ipAddress = ipAddress.ip;
+      callback(null, ipAddress);
+      // fetchCoordsByIP(ipAddress, callback);
     }
   });
 };
 
+const fetchCoordsByIP = (ip, callback) => {
+  const url = `http://ipwho.is/${ip}`;
+
+  request.get(url, (error, response, body) => {
+    if (error) {
+      callback(error, null);
+      return;
+    }
+
+    // if (response !== 200) {
+    //   const errMess = `Status Code ${response.statusCode} when fetching IP. Response: ${body}`;
+    //   callback(Error(errMess), null);
+    // }
+    
+    const bodyObj = JSON.parse(body);
+    
+    if (!bodyObj.success) {
+      const msg = `Success status was ${bodyObj.success}. Server message says: ${bodyObj.message} when fetching for IP ${bodyObj.ip}`;
+      callback(Error(msg), null);
+      return;
+    }
+    
+    const latitude = bodyObj.latitude;
+    const longitude = bodyObj.longitude;
+    const longLatObj = {"latitude": latitude, "longitude": longitude};
+
+    callback(null, longLatObj);
+
+  });
+};
 
 
-module.exports = { fetchMyIP };
+module.exports = { fetchMyIP, fetchCoordsByIP };
